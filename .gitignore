@@ -8,6 +8,7 @@ venv/
 env/
 .venv/
 
+
 # Django
 *.log
 db.sqlite3
