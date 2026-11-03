@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to College Club Management System{% endblock %}
+{% block public_container_class %}p-0{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="landing-hero text-center text-lg-start">
+  <div class="container py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <div class="college-logo mb-3">
+          <img src="/static/images/sist_logo4.jpeg"
+               alt="SIST College Logo"
+               style="width: 180px; height: auto;">
+        </div>
+        <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 text-white px-3 py-1 rounded-pill small fw-semibold mb-3 border border-white border-opacity-25">
+          <i class="bi bi-stars text-warning"></i> Campus Life & Student Activities
+        </div>
+        <h1 class="hero-title text-white mb-3">
+          Elevate Your College Experience With Active Campus Clubs
+        </h1>
+        <p class="hero-subtitle mb-4">
+          Discover hackathons, science research, vibrant cultural festivals, creative design sprints, NSS social service, and NCC leadership training. Connect, participate, and build lifelong leadership skills.
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+          <a href="{% url 'clubs:list' %}" class="btn btn-primary btn-lg rounded-pill px-4 shadow">
+            <i class="bi bi-compass me-2"></i>Explore All Clubs
+          </a>
+          <a href="{% url 'events:list' %}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+            <i class="bi bi-calendar-event me-2"></i>Upcoming Events
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white text-dark p-4">
+          <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-shield-lock-fill text-primary"></i> Portal Quick Access
+          </h4>
+          <p class="text-muted small mb-4">Select your role to access your personalized college management workspace.</p>
+          
+          <div class="d-grid gap-2 mb-3">
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-dark p-3 text-start d-flex align-items-center gap-3 rounded-3 border">
+              <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-2">
+                <i class="bi bi-person-fill-gear fs-4"></i>
+              </div>
+              <div>
+                <div class="fw-bold">Administrator Portal</div>
+                <small class="text-muted">System control, approve clubs & metrics</small>
+              </div>
+            </a>
+
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-dark p-3 text-start d-flex align-items-center gap-3 rounded-3 border">
+              <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-2">
+                <i class="bi bi-person-badge-fill fs-4"></i>
+              </div>
+              <div>
+                <div class="fw-bold">Club Coordinator Portal</div>
+                <small class="text-muted">Manage members, post events & notices</small>
+              </div>
+            </a>
+
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-dark p-3 text-start d-flex align-items-center gap-3 rounded-3 border">
+              <div class="bg-success bg-opacity-10 text-success p-2 rounded-2">
+                <i class="bi bi-mortarboard-fill fs-4"></i>
+              </div>
+              <div>
+                <div class="fw-bold">Student Portal</div>
+                <small class="text-muted">Join clubs, register for tickets & history</small>
+              </div>
+            </a>
+          </div>
+
+          <div class="text-center pt-2 border-top">
+            <small class="text-muted">New student? <a href="{% url 'accounts:register' %}" class="fw-bold text-primary text-decoration-none">Create Student Account</a></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Counter Bar -->
+<section class="py-4 bg-white border-bottom shadow-sm">
+  <div class="container">
+    <div class="row text-center g-3">
+      <div class="col-6 col-md-3">
+        <div class="fw-bolder fs-2 text-primary">{{ stats.clubs }}+</div>
+        <div class="text-muted small fw-semibold text-uppercase">Active College Clubs</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="fw-bolder fs-2 text-primary">{{ stats.students }}+</div>
+        <div class="text-muted small fw-semibold text-uppercase">Registered Students</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="fw-bolder fs-2 text-primary">{{ stats.memberships }}+</div>
+        <div class="text-muted small fw-semibold text-uppercase">Active Memberships</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="fw-bolder fs-2 text-primary">{{ stats.events }}+</div>
+        <div class="text-muted small fw-semibold text-uppercase">College Events</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Clubs Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+      <div>
+        <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-1 rounded-pill mb-2">Featured Clubs</span>
+        <h2 class="fw-bold text-dark mb-1">Explore Official College Clubs</h2>
+        <p class="text-muted mb-0">Join technology, science, arts, design, social, and leadership forums.</p>
+      </div>
+      <a href="{% url 'clubs:list' %}" class="btn btn-outline-primary rounded-pill mt-3 mt-md-0">
+        View All Clubs <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for club in featured_clubs %}
+        <div class="col-md-6 col-lg-4">
+          <div class="club-card h-100">
+            <div class="club-card-banner">
+              <span class="badge bg-white text-dark position-absolute top-0 end-0 m-2 fw-semibold small shadow-sm">
+                {{ club.get_category_display }}
+              </span>
+              <div class="club-card-logo-wrap">
+                <img src="{{ club.get_logo_url }}" alt="{{ club.name }}" class="club-card-logo">
+              </div>
+            </div>
+            <div class="club-card-body">
+              <h5 class="club-card-title">{{ club.name }}</h5>
+              <p class="club-card-desc">{{ club.description }}</p>
+              
+              <div class="mt-auto">
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Capacity</span>
+                  <span class="fw-bold text-dark">{{ club.member_count }} / {{ club.max_capacity }} Members</span>
+                </div>
+                <div class="progress mb-3" style="height: 6px;">
+                  <div class="progress-bar bg-primary" role="progressbar" style="width: {{ club.capacity_percentage }}%;"></div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                  <div class="small text-muted text-truncate me-2">
+                    <i class="bi bi-person-fill text-primary me-1"></i>
+                    {{ club.coordinator.get_full_name|default:club.coordinator.username|default:"Unassigned" }}
+                  </div>
+                  <a href="{% url 'clubs:detail' slug=club.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Details
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Upcoming Events Section -->
+<section class="py-5 bg-white border-top border-bottom">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+      <div>
+        <span class="badge bg-success-subtle text-success fw-semibold px-3 py-1 rounded-pill mb-2">Campus Calendar</span>
+        <h2 class="fw-bold text-dark mb-1">Upcoming Events & Workshops</h2>
+        <p class="text-muted mb-0">Never miss a hackathon, cultural show, or certification camp.</p>
+      </div>
+      <a href="{% url 'events:list' %}" class="btn btn-outline-success rounded-pill mt-3 mt-md-0">
+        Browse All Events <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for event in upcoming_events %}
+        <div class="col-md-6 col-lg-4">
+          <div class="event-card h-100">
+            <div class="event-card-img-wrap">
+              <img src="{{ event.get_poster_url }}" alt="{{ event.title }}" class="event-card-img">
+              <div class="event-badge-overlay">
+                <span class="badge {{ event.get_status_badge }} shadow-sm">
+                  {{ event.get_status_display }}
+                </span>
+              </div>
+              <div class="event-club-overlay">
+                <span class="badge bg-dark bg-opacity-75 text-white">
+                  {{ event.club.name }}
+                </span>
+              </div>
+            </div>
+            <div class="event-card-body">
+              <h5 class="event-card-title">{{ event.title }}</h5>
+              <div class="event-meta-item">
+                <i class="bi bi-calendar3 text-primary"></i>
+                <span>{{ event.start_date_time|date:"D, d M Y · h:i A" }}</span>
+              </div>
+              <div class="event-meta-item">
+                <i class="bi bi-geo-alt-fill text-danger"></i>
+                <span>{{ event.venue }}</span>
+              </div>
+
+              <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                <span class="small text-muted">
+                  <i class="bi bi-people me-1"></i>{{ event.registered_count }}/{{ event.max_participants }} Registered
+                </span>
+                <a href="{% url 'events:detail' slug=event.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  Register
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-12 text-center py-4 text-muted">
+          <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+          No upcoming events scheduled right now. Check back soon!
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Latest Announcements -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-4">
+        <span class="badge bg-warning-subtle text-dark fw-semibold px-3 py-1 rounded-pill mb-2">Notices</span>
+        <h2 class="fw-bold mb-3">Live Campus Announcements</h2>
+        <p class="text-muted">Stay informed about club recruitment, guidelines, schedule revisions, and campus-wide notifications in real-time.</p>
+        <a href="{% url 'announcements:list' %}" class="btn btn-dark rounded-pill px-4">
+          All Announcements <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+          {% for announcement in recent_announcements %}
+            <div class="announcement-item priority-{{ announcement.priority }}">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bold text-dark mb-0">{{ announcement.title }}</h6>
+                <span class="badge {{ announcement.get_priority_badge }} small">{{ announcement.get_priority_display }}</span>
+              </div>
+              <p class="text-muted small mb-2">{{ announcement.content|truncatechars:140 }}</p>
+              <div class="d-flex justify-content-between align-items-center small text-muted">
+                <span>
+                  <i class="bi bi-tag-fill me-1 text-primary"></i>
+                  {% if announcement.club %}{{ announcement.club.name }}{% else %}College-Wide{% endif %}
+                </span>
+                <span><i class="bi bi-clock me-1"></i>{{ announcement.created_at|timesince }} ago</span>
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-center py-4 text-muted">No announcements posted yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - {{ request.user.username }}{% endblock %}
+{% block page_title %}Account Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card custom-card text-center p-4">
+      <div class="position-relative d-inline-block mx-auto mb-3">
+        {% if request.user.avatar %}
+          <img src="{{ request.user.avatar.url }}" alt="{{ request.user.username }}" class="rounded-circle shadow" style="width: 120px; height: 120px; object-fit: cover;">
+        {% else %}
+          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto shadow" style="width: 120px; height: 120px; font-size: 3rem; font-weight: bold;">
+            {{ request.user.username|slice:":1"|upper }}
+          </div>
+        {% endif %}
+      </div>
+      <h4 class="fw-bold text-dark mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
+      <p class="text-muted small mb-2">@{{ request.user.username }}</p>
+      <div>
+        <span class="badge {{ request.user.get_role_badge_class }} px-3 py-2 rounded-pill fs-6">{{ request.user.get_role_display }}</span>
+      </div>
+
+      <div class="mt-4 pt-3 border-top text-start">
+        <div class="mb-2 small text-muted"><i class="bi bi-envelope text-primary me-2"></i>{{ request.user.email|default:"No email set" }}</div>
+        <div class="mb-2 small text-muted"><i class="bi bi-telephone text-primary me-2"></i>{{ request.user.phone_number|default:"No phone set" }}</div>
+        {% if request.user.is_student_role and student_profile %}
+          <div class="mb-2 small text-muted"><i class="bi bi-credit-card-2-front text-primary me-2"></i>Roll No: <strong>{{ student_profile.roll_number|default:"Not assigned" }}</strong></div>
+          <div class="mb-2 small text-muted"><i class="bi bi-building text-primary me-2"></i>Department: <strong>{{ student_profile.get_department_display }}</strong></div>
+          <div class="mb-2 small text-muted"><i class="bi bi-mortarboard text-primary me-2"></i>Year: <strong>{{ student_profile.get_year_of_study_display }}</strong></div>
+        {% endif %}
+      </div>
+
+      <div class="d-grid mt-4">
+        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary rounded-pill btn-sm">
+          <i class="bi bi-shield-lock me-1"></i>Change Password
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card custom-card p-4">
+      <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pencil-square text-primary me-2"></i>Update Profile Details</h5>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">First Name</label>
+            {{ user_form.first_name }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Last Name</label>
+            {{ user_form.last_name }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Email Address</label>
+            {{ user_form.email }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Phone Number</label>
+            {{ user_form.phone_number }}
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Profile Avatar / Photo</label>
+            {{ user_form.avatar }}
+          </div>
+
+          {% if student_form %}
+            <div class="col-12 pt-3 border-top">
+              <h6 class="fw-bold text-dark mb-3"><i class="bi bi-mortarboard text-primary me-2"></i>Academic Details</h6>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Department</label>
+              {{ student_form.department }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Year of Study</label>
+              {{ student_form.year_of_study }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-muted">Interests & Skills</label>
+              {{ student_form.interests }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-muted">Bio</label>
+              {{ student_form.bio }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-save me-1"></i>Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

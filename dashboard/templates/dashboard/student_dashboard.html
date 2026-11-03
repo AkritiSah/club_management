@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard - CampusClubs{% endblock %}
+{% block page_title %}Student Hub{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="card custom-card border-0 shadow-sm p-4 mb-4 text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+  <div class="row align-items-center position-relative" style="z-index: 2;">
+    <div class="col-md-8">
+      <span class="badge bg-success mb-2 px-3 py-1 rounded-pill">Student Portal</span>
+      <h3 class="fw-bold mb-1">Hello, {{ request.user.get_full_name|default:request.user.username }}!</h3>
+      <p class="text-light opacity-75 mb-0">Track your college club memberships, upcoming event tickets, and campus announcements all in one place.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <a href="{% url 'clubs:list' %}" class="btn btn-primary rounded-pill px-4 shadow me-2">
+        <i class="bi bi-compass me-1"></i>Find Clubs
+      </a>
+      <a href="{% url 'events:list' %}" class="btn btn-outline-light rounded-pill px-3">
+        <i class="bi bi-calendar-event me-1"></i>Events
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Student Stats Bar -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Active Clubs</p>
+          <div class="stat-number">{{ joined_clubs_count }}</div>
+        </div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-collection-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2"><a href="{% url 'clubs:my_clubs' %}" class="text-decoration-none">View enrolled clubs &rarr;</a></small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Pending Requests</p>
+          <div class="stat-number {% if pending_count > 0 %}text-warning{% endif %}">{{ pending_count }}</div>
+        </div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-clock-history"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2"><a href="{% url 'memberships:my_memberships' %}" class="text-decoration-none">Check status &rarr;</a></small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Event Tickets</p>
+          <div class="stat-number">{{ registered_events_count }}</div>
+        </div>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2"><a href="{% url 'events:my_registrations' %}" class="text-decoration-none">View tickets &rarr;</a></small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Department</p>
+          <div class="fs-4 fw-bold text-dark mt-2">{{ request.user.student_profile.get_department_display|truncatechars:18|default:"CSE" }}</div>
+        </div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Roll: {{ request.user.student_profile.roll_number|default:"N/A" }}</small>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Joined Clubs & Pending Applications -->
+  <div class="col-lg-7">
+    <!-- Active Joined Clubs -->
+    <div class="card custom-card mb-4">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-check-circle-fill text-success"></i>My Active Clubs ({{ joined_clubs_count }})
+        </div>
+        <a href="{% url 'clubs:my_clubs' %}" class="btn btn-sm btn-outline-primary rounded-pill">Manage</a>
+      </div>
+      <div class="p-3">
+        {% for mem in joined_memberships %}
+          <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border mb-2 bg-light">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ mem.club.get_logo_url }}" alt="{{ mem.club.name }}" class="rounded-circle border" style="width: 44px; height: 44px; object-fit: cover;">
+              <div>
+                <h6 class="fw-bold text-dark mb-0">{{ mem.club.name }}</h6>
+                <small class="text-muted">{{ mem.club.get_category_display }} · Venue: {{ mem.club.meeting_venue|default:"Main Campus" }}</small>
+              </div>
+            </div>
+            <a href="{% url 'clubs:detail' slug=mem.club.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+              Visit Club
+            </a>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">
+            You are not an active member of any clubs yet.
+            <div class="mt-2">
+              <a href="{% url 'clubs:list' %}" class="btn btn-sm btn-primary rounded-pill px-3">Explore & Join Clubs</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Pending Membership Requests -->
+    {% if pending_memberships %}
+      <div class="card custom-card mb-4 border-warning">
+        <div class="custom-card-header bg-warning bg-opacity-10">
+          <div class="custom-card-title text-dark">
+            <i class="bi bi-clock-history text-warning"></i>Pending Membership Requests ({{ pending_count }})
+          </div>
+          <a href="{% url 'memberships:my_memberships' %}" class="btn btn-sm btn-outline-dark rounded-pill">View All</a>
+        </div>
+        <div class="p-3">
+          {% for pmem in pending_memberships %}
+            <div class="d-flex justify-content-between align-items-center p-2 rounded-2 border mb-2 bg-white">
+              <div>
+                <strong class="text-dark">{{ pmem.club.name }}</strong>
+                <small class="text-muted d-block">Requested on {{ pmem.request_date|date:"d M Y, h:i A" }}</small>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning text-dark">Under Review</span>
+                <form method="post" action="{% url 'memberships:cancel' pk=pmem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Withdraw Application">
+                    Cancel
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Upcoming Registered Events -->
+    <div class="card custom-card">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-calendar2-check-fill text-primary"></i>My Registered Upcoming Events
+        </div>
+        <a href="{% url 'events:my_registrations' %}" class="btn btn-sm btn-outline-primary rounded-pill">All Tickets</a>
+      </div>
+      <div class="p-3">
+        {% for reg in registered_events %}
+          <div class="d-flex justify-content-between align-items-center p-3 rounded-3 border mb-2 bg-light">
+            <div>
+              <span class="badge bg-primary small mb-1">{{ reg.event.club.name }}</span>
+              <h6 class="fw-bold text-dark mb-1">{{ reg.event.title }}</h6>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>{{ reg.event.start_date_time|date:"d M Y, h:i A" }} · {{ reg.event.venue }}
+              </small>
+            </div>
+            <a href="{% url 'events:detail' slug=reg.event.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+              Ticket
+            </a>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">
+            No upcoming events registered.
+            <div class="mt-2">
+              <a href="{% url 'events:list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Browse Events Calendar</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Campus Notices Feed & Quick Links -->
+  <div class="col-lg-5">
+    <!-- Announcements Feed -->
+    <div class="card custom-card mb-4">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-bell-fill text-primary"></i>Club & Campus Notices
+        </div>
+        <a href="{% url 'announcements:list' %}" class="btn btn-sm btn-outline-primary rounded-pill">All Notices</a>
+      </div>
+      <div class="p-3">
+        {% for ann in relevant_announcements %}
+          <div class="announcement-item priority-{{ ann.priority }} mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h6 class="fw-bold text-dark mb-0 small">{{ ann.title }}</h6>
+              <span class="badge {{ ann.get_priority_badge }}" style="font-size: 0.65rem;">{{ ann.get_priority_display }}</span>
+            </div>
+            <p class="text-muted small mb-1">{{ ann.content|truncatechars:90 }}</p>
+            <div class="d-flex justify-content-between small text-muted" style="font-size: 0.72rem;">
+              <span>{% if ann.club %}{{ ann.club.name }}{% else %}College-Wide{% endif %}</span>
+              <span>{{ ann.created_at|timesince }} ago</span>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">No announcements posted for your clubs yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Student Quick Actions & Profile Summary -->
+    <div class="card custom-card p-4">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-person-circle text-primary me-2"></i>My Student Profile</h6>
+      <div class="bg-light p-3 rounded-3 border small mb-3">
+        <div class="mb-1"><strong>Name:</strong> {{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="mb-1"><strong>Roll No:</strong> {{ request.user.student_profile.roll_number|default:"Not configured" }}</div>
+        <div class="mb-1"><strong>Department:</strong> {{ request.user.student_profile.get_department_display }}</div>
+        <div><strong>Year of Study:</strong> {{ request.user.student_profile.get_year_of_study_display }}</div>
+      </div>
+
+      <div class="d-grid gap-2">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+          <i class="bi bi-pencil me-1"></i>Edit Profile Info
+        </a>
+        <a href="{% url 'clubs:create' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+          <i class="bi bi-lightbulb me-1"></i>Submit New Club Idea
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

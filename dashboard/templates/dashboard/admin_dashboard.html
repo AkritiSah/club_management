@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Administrator Dashboard - CampusClubs{% endblock %}
+{% block page_title %}Administrator Control Center{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="card custom-card border-0 shadow-sm p-4 mb-4 text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+  <div class="row align-items-center position-relative" style="z-index: 2;">
+    <div class="col-md-8">
+      <span class="badge bg-danger mb-2 px-3 py-1 rounded-pill">System Administrator</span>
+      <h3 class="fw-bold mb-1">Welcome, {{ request.user.get_full_name|default:request.user.username }}!</h3>
+      <p class="text-light opacity-75 mb-0">Here is a comprehensive summary of college clubs, student memberships, event registrations, and campus activities.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <a href="{% url 'clubs:create' %}" class="btn btn-primary rounded-pill px-3 shadow-sm me-2">
+        <i class="bi bi-plus-circle me-1"></i>New Club
+      </a>
+      <a href="{% url 'accounts:coordinators' %}" class="btn btn-outline-light rounded-pill px-3">
+        <i class="bi bi-person-plus me-1"></i>Coordinator
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Students</p>
+          <div class="stat-number">{{ total_students }}</div>
+        </div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2"><i class="bi bi-check-circle text-success me-1"></i>Enrolled students</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Clubs</p>
+          <div class="stat-number">{{ total_clubs }}</div>
+        </div>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-collection-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">
+        <span class="text-success fw-bold">{{ active_clubs }} Active</span>
+        {% if pending_clubs > 0 %}· <span class="text-warning fw-bold">{{ pending_clubs }} Pending</span>{% endif %}
+      </small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Coordinators</p>
+          <div class="stat-number">{{ total_coordinators }}</div>
+        </div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Assigned faculty/leads</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Memberships</p>
+          <div class="stat-number">{{ total_memberships }}</div>
+        </div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-card-checklist"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">
+        <span class="text-success fw-bold">{{ approved_memberships }} OK</span> · 
+        <span class="text-warning fw-bold">{{ pending_memberships }} Req</span>
+      </small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Events</p>
+          <div class="stat-number">{{ total_events }}</div>
+        </div>
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+          <i class="bi bi-calendar2-event-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">
+        <span class="text-primary fw-bold">{{ upcoming_events }} Upcoming</span>
+      </small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Tickets</p>
+          <div class="stat-number">{{ total_registrations }}</div>
+        </div>
+        <div class="stat-icon bg-secondary bg-opacity-10 text-secondary">
+          <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Event registrations</small>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Pending Club Requests & Pending Memberships -->
+  <div class="col-lg-7">
+    <!-- Club Proposals Card -->
+    {% if pending_club_requests %}
+      <div class="card custom-card mb-4 border-warning">
+        <div class="custom-card-header bg-warning bg-opacity-10">
+          <div class="custom-card-title text-warning text-dark">
+            <i class="bi bi-exclamation-triangle-fill text-warning"></i>Pending Club Proposals ({{ pending_club_requests.count }})
+          </div>
+          <a href="{% url 'clubs:requests' %}" class="btn btn-sm btn-outline-dark rounded-pill">View All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table custom-table mb-0">
+            <tbody>
+              {% for pclub in pending_club_requests %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ pclub.name }}</div>
+                    <small class="text-muted">{{ pclub.get_category_display }} · Cap: {{ pclub.max_capacity }}</small>
+                  </td>
+                  <td><small class="text-muted">{{ pclub.created_at|date:"d M Y" }}</small></td>
+                  <td class="text-end">
+                    <form method="post" action="{% url 'clubs:approve_proposal' pk=pclub.id %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'clubs:reject_proposal' pk=pclub.id %}" class="d-inline ms-1">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2">Reject</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Pending Memberships Card -->
+    <div class="card custom-card mb-4">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-person-lines-fill text-primary"></i>Recent Pending Membership Requests
+        </div>
+        <a href="{% url 'memberships:all_memberships' %}" class="btn btn-sm btn-outline-primary rounded-pill">All Memberships</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table custom-table mb-0">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Target Club</th>
+              <th>Requested On</th>
+              <th class="text-end">Quick Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mem in pending_membership_requests %}
+              <tr>
+                <td>
+                  <div class="fw-bold text-dark">{{ mem.student.get_full_name|default:mem.student.username }}</div>
+                  <small class="text-muted">@{{ mem.student.username }}</small>
+                </td>
+                <td>
+                  <a href="{% url 'clubs:detail' slug=mem.club.slug %}" class="fw-semibold text-primary text-decoration-none">
+                    {{ mem.club.name }}
+                  </a>
+                </td>
+                <td><small class="text-muted">{{ mem.request_date|date:"d M, h:i A" }}</small></td>
+                <td class="text-end">
+                  <form method="post" action="{% url 'memberships:approve' pk=mem.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2">Approve</button>
+                  </form>
+                  <form method="post" action="{% url 'memberships:reject' pk=mem.id %}" class="d-inline ms-1">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2">Reject</button>
+                  </form>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-4 text-muted small">No pending membership requests right now.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Upcoming Events List -->
+    <div class="card custom-card">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-calendar-event text-primary"></i>Upcoming Campus Events
+        </div>
+        <a href="{% url 'events:list' %}" class="btn btn-sm btn-outline-primary rounded-pill">Calendar</a>
+      </div>
+      <div class="p-3">
+        {% for ev in upcoming_events_list %}
+          <div class="d-flex justify-content-between align-items-center p-3 rounded-3 border mb-2 bg-light">
+            <div>
+              <span class="badge bg-primary small mb-1">{{ ev.club.name }}</span>
+              <h6 class="fw-bold text-dark mb-1">{{ ev.title }}</h6>
+              <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ ev.start_date_time|date:"d M Y, h:i A" }} · {{ ev.venue }}</small>
+            </div>
+            <a href="{% url 'events:detail' slug=ev.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+              View
+            </a>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">No upcoming events scheduled.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Recent Activity Log & Quick Admin Shortcuts -->
+  <div class="col-lg-5">
+    <!-- Quick Shortcuts Card -->
+    <div class="card custom-card mb-4 p-4">
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Admin Shortcuts</h6>
+      <div class="d-grid gap-2">
+        <a href="{% url 'clubs:create' %}" class="btn btn-outline-primary text-start rounded-3 d-flex align-items-center gap-2">
+          <i class="bi bi-plus-circle-fill text-primary fs-5"></i>
+          <div>
+            <div class="fw-semibold">Create New Club</div>
+            <small class="text-muted">Launch official campus society</small>
+          </div>
+        </a>
+        <a href="{% url 'accounts:coordinators' %}" class="btn btn-outline-secondary text-start rounded-3 d-flex align-items-center gap-2">
+          <i class="bi bi-person-plus-fill text-info fs-5"></i>
+          <div>
+            <div class="fw-semibold">Create / Assign Coordinator</div>
+            <small class="text-muted">Grant club coordinator access</small>
+          </div>
+        </a>
+        <a href="{% url 'events:create' %}" class="btn btn-outline-success text-start rounded-3 d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-plus-fill text-success fs-5"></i>
+          <div>
+            <div class="fw-semibold">Publish College Event</div>
+            <small class="text-muted">Schedule university workshop or competition</small>
+          </div>
+        </a>
+        <a href="{% url 'announcements:create' %}" class="btn btn-outline-danger text-start rounded-3 d-flex align-items-center gap-2">
+          <i class="bi bi-megaphone-fill text-danger fs-5"></i>
+          <div>
+            <div class="fw-semibold">Post College Announcement</div>
+            <small class="text-muted">Send campus-wide notice</small>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Real-time Activity Log -->
+    <div class="card custom-card">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-activity text-primary"></i>Recent System Activity
+        </div>
+      </div>
+      <div class="p-3">
+        {% for act in recent_activities %}
+          <div class="d-flex align-items-start gap-2 mb-3 pb-2 border-bottom">
+            <div class="rounded-circle bg-light border p-2 text-primary">
+              {% if act.category == 'MEMBERSHIP' %}<i class="bi bi-person-check small"></i>
+              {% elif act.category == 'EVENT' %}<i class="bi bi-calendar-check small"></i>
+              {% elif act.category == 'CLUB' %}<i class="bi bi-collection small"></i>
+              {% elif act.category == 'ANNOUNCEMENT' %}<i class="bi bi-megaphone small"></i>
+              {% else %}<i class="bi bi-shield small"></i>{% endif %}
+            </div>
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="fw-medium text-dark small">{{ act.action }}</div>
+              <small class="text-muted d-block" style="font-size: 0.75rem;">
+                By <strong>{{ act.user.username }}</strong> · {{ act.timestamp|timesince }} ago
+              </small>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">No recent logs recorded.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

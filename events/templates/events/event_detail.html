@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - College Club Management{% endblock %}
+{% block page_title %}Event Information{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card custom-card overflow-hidden mb-4">
+      <div class="position-relative" style="max-height: 380px; overflow: hidden; background-color: #0f172a;">
+        <img src="{{ event.get_poster_url }}" alt="{{ event.title }}" class="w-100 object-fit-cover">
+        <div class="position-absolute top-0 end-0 m-3">
+          <span class="badge {{ event.get_status_badge }} fs-6 shadow">{{ event.get_status_display }}</span>
+        </div>
+        <div class="position-absolute bottom-0 start-0 m-3">
+          <a href="{% url 'clubs:detail' slug=event.club.slug %}" class="badge bg-dark bg-opacity-75 text-white fs-6 text-decoration-none shadow">
+            <i class="bi bi-collection-fill me-1"></i>{{ event.club.name }}
+          </a>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <h3 class="fw-bold text-dark mb-3">{{ event.title }}</h3>
+        
+        <div class="row g-3 p-3 bg-light rounded-3 border mb-4">
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-calendar-check text-primary fs-4"></i>
+              <div>
+                <small class="text-muted d-block">Start Time</small>
+                <strong>{{ event.start_date_time|date:"D, d M Y · h:i A" }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-clock-history text-danger fs-4"></i>
+              <div>
+                <small class="text-muted d-block">Conclusion</small>
+                <strong>{{ event.end_date_time|date:"D, d M Y · h:i A" }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-geo-alt-fill text-danger fs-4"></i>
+              <div>
+                <small class="text-muted d-block">Campus Venue</small>
+                <strong>{{ event.venue }}</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-alarm text-warning fs-4"></i>
+              <div>
+                <small class="text-muted d-block">Registration Deadline</small>
+                <strong>{{ event.registration_deadline|date:"d M Y, h:i A" }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-text-paragraph text-primary me-2"></i>Event Description & Agenda</h5>
+        <div class="text-muted" style="line-height: 1.8;">
+          {{ event.description|linebreaks }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <!-- Registration Box -->
+    <div class="card custom-card p-4 mb-4">
+      <h5 class="fw-bold text-dark mb-3">Event Registration</h5>
+      
+      <div class="mb-3">
+        <div class="d-flex justify-content-between text-muted small mb-1">
+          <span>Capacity Status</span>
+          <strong class="text-dark">{{ event.registered_count }} / {{ event.max_participants }} Registered</strong>
+        </div>
+        <div class="progress" style="height: 8px;">
+          <div class="progress-bar {% if event.is_full %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ event.registered_count|default:0 }}%;"></div>
+        </div>
+        <small class="text-muted d-block mt-1">{{ event.available_seats }} seats remaining</small>
+      </div>
+
+      {% if is_student_user %}
+        <div class="pt-3 border-top">
+          {% if is_registered %}
+            <div class="alert alert-success d-flex align-items-center small mb-3">
+              <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+              <div><strong>Confirmed!</strong> You are registered for this event.</div>
+            </div>
+            <form method="post" action="{% url 'events:cancel_registration' slug=event.slug %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger w-100 rounded-pill" onclick="return confirm('Cancel your event ticket?');">
+                <i class="bi bi-x-circle me-1"></i>Cancel My Registration
+              </button>
+            </form>
+          {% elif event.is_registration_open %}
+            <form method="post" action="{% url 'events:register' slug=event.slug %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow">
+                <i class="bi bi-ticket-perforated-fill me-2"></i>Register for Event
+              </button>
+            </form>
+          {% else %}
+            <div class="alert alert-secondary small text-center mb-0">
+              <i class="bi bi-lock-fill me-1"></i>Registration is closed for this event.
+            </div>
+          {% endif %}
+        </div>
+      {% elif not user.is_authenticated %}
+        <div class="pt-3 border-top text-center">
+          <p class="text-muted small">Please sign in to register for college events.</p>
+          <a href="{% url 'accounts:login' %}" class="btn btn-primary rounded-pill w-100">Sign In to Register</a>
+        </div>
+      {% endif %}
+
+      <!-- Management Controls -->
+      {% if can_manage %}
+        <div class="pt-3 mt-3 border-top">
+          <h6 class="fw-bold text-dark small text-uppercase mb-2">Coordinator Actions</h6>
+          <div class="d-grid gap-2">
+            <a href="{% url 'events:registrations' slug=event.slug %}" class="btn btn-outline-primary btn-sm rounded-pill">
+              <i class="bi bi-people-fill me-1"></i>View Registrations Roster ({{ event.registered_count }})
+            </a>
+            <a href="{% url 'events:update' slug=event.slug %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+              <i class="bi bi-pencil me-1"></i>Edit Event
+            </a>
+            <a href="{% url 'events:delete' slug=event.slug %}" class="btn btn-outline-danger btn-sm rounded-pill">
+              <i class="bi bi-trash me-1"></i>Delete Event
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Organizing Club Details -->
+    <div class="card custom-card p-4">
+      <h6 class="fw-bold text-muted text-uppercase small mb-3">Organized By</h6>
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <img src="{{ event.club.get_logo_url }}" alt="{{ event.club.name }}" class="rounded-circle border" style="width: 50px; height: 50px; object-fit: cover;">
+        <div>
+          <h6 class="fw-bold text-dark mb-0">{{ event.club.name }}</h6>
+          <small class="text-muted">{{ event.club.get_category_display }}</small>
+        </div>
+      </div>
+      <p class="text-muted small mb-3">{{ event.club.description|truncatechars:100 }}</p>
+      <a href="{% url 'clubs:detail' slug=event.club.slug %}" class="btn btn-outline-secondary btn-sm rounded-pill w-100">
+        Visit Club Page
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

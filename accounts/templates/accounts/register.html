@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Registration - College Club Management{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5 bg-white">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex p-3 bg-success bg-opacity-10 text-success rounded-circle mb-3">
+            <i class="bi bi-person-plus-fill fs-2"></i>
+          </div>
+          <h3 class="fw-bold text-dark">Create Student Account</h3>
+          <p class="text-muted small">Register to browse campus clubs, apply for memberships, and sign up for college events</p>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger small py-2 mb-3">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Username *</label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">College Email Address *</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">First Name</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Last Name</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Roll Number / Student ID *</label>
+              {{ form.roll_number }}
+              {% if form.roll_number.errors %}<div class="text-danger small mt-1">{{ form.roll_number.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Phone Number</label>
+              {{ form.phone_number }}
+              {% if form.phone_number.errors %}<div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Academic Department *</label>
+              {{ form.department }}
+              {% if form.department.errors %}<div class="text-danger small mt-1">{{ form.department.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Year of Study *</label>
+              {{ form.year_of_study }}
+              {% if form.year_of_study.errors %}<div class="text-danger small mt-1">{{ form.year_of_study.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Create Password *</label>
+              {{ form.password }}
+              {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Confirm Password *</label>
+              {{ form.confirm_password }}
+              {% if form.confirm_password.errors %}<div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm mt-4">
+            <i class="bi bi-check2-circle me-2"></i>Complete Student Registration
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="small text-muted mb-0">Already registered? <a href="{% url 'accounts:login' %}" class="fw-bold text-primary text-decoration-none">Sign in here</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

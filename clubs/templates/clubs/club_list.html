@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static club_tags %}
+
+{% block title %}Explore College Clubs - CampusClubs{% endblock %}
+{% block page_title %}College Clubs Directory{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">Campus Clubs</h4>
+    <p class="text-muted small mb-0">Browse active college clubs, learn about activities, and join communities.</p>
+  </div>
+  {% if is_site_admin %}
+    <a href="{% url 'clubs:create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+      <i class="bi bi-plus-circle me-1"></i>Create New Club
+    </a>
+  {% elif is_student_user %}
+    <a href="{% url 'clubs:create' %}" class="btn btn-outline-primary rounded-pill px-4">
+      <i class="bi bi-lightbulb me-1"></i>Propose a Club
+    </a>
+  {% endif %}
+</div>
+
+<!-- Search & Category Filters -->
+<div class="card custom-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control border-start-0" placeholder="Search clubs by name, description, coordinator..." value="{{ query }}">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select name="category" class="form-select">
+        <option value="">-- All Categories --</option>
+        {% for cat_code, cat_name in categories %}
+          <option value="{{ cat_code }}" {% if selected_category == cat_code %}selected{% endif %}>{{ cat_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary rounded-pill">Apply Filter</button>
+    </div>
+  </form>
+</div>
+
+<!-- Clubs Grid -->
+<div class="row g-4">
+  {% for club in page_obj %}
+    <div class="col-md-6 col-lg-4">
+      <div class="club-card">
+        <div class="club-card-banner">
+          <span class="badge bg-white text-dark position-absolute top-0 end-0 m-2 fw-semibold small shadow-sm">
+            {{ club.get_category_display }}
+          </span>
+          <div class="club-card-logo-wrap">
+            <img src="{{ club.get_logo_url }}" alt="{{ club.name }}" class="club-card-logo">
+          </div>
+        </div>
+        <div class="club-card-body">
+          <h5 class="club-card-title">{{ club.name }}</h5>
+          <p class="club-card-desc">{{ club.description }}</p>
+
+          <div class="mt-auto">
+            <div class="d-flex justify-content-between text-muted small mb-1">
+              <span>Member Capacity</span>
+              <span class="fw-bold text-dark">{{ club.member_count }} / {{ club.max_capacity }}</span>
+            </div>
+            <div class="progress mb-3" style="height: 6px;">
+              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ club.capacity_percentage }}%;"></div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+              <div class="small text-muted text-truncate me-2">
+                <i class="bi bi-person-fill text-primary me-1"></i>
+                {{ club.coordinator.get_full_name|default:club.coordinator.username|default:"Unassigned" }}
+              </div>
+              
+              <div class="d-flex gap-1">
+                <a href="{% url 'clubs:detail' slug=club.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  Details
+                </a>
+
+                {% if is_student_user %}
+                  {% if user_memberships|default_if_none:None %}
+                    {% with status=user_memberships|dict_get:club.id %}
+                      {% if status == 'APPROVED' %}
+                        <span class="badge bg-success-subtle text-success border d-flex align-items-center px-2 py-1 rounded-pill">
+                          <i class="bi bi-check me-1"></i>Member
+                        </span>
+                      {% elif status == 'PENDING' %}
+                        <span class="badge bg-warning-subtle text-warning border d-flex align-items-center px-2 py-1 rounded-pill">
+                          <i class="bi bi-clock me-1"></i>Pending
+                        </span>
+                      {% elif club.is_full %}
+                        <span class="badge bg-danger-subtle text-danger border d-flex align-items-center px-2 py-1 rounded-pill">
+                          Full
+                        </span>
+                      {% else %}
+                        <a href="{% url 'memberships:request' club_slug=club.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                          Join
+                        </a>
+                      {% endif %}
+                    {% endwith %}
+                  {% else %}
+                    {% if club.is_full %}
+                      <span class="badge bg-danger-subtle text-danger border d-flex align-items-center px-2 py-1 rounded-pill">
+                        Full
+                      </span>
+                    {% else %}
+                      <a href="{% url 'memberships:request' club_slug=club.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                        Join
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12 text-center py-5">
+      <div class="text-muted">
+        <i class="bi bi-search fs-1 d-block mb-2 text-secondary"></i>
+        <h5>No clubs found matching your search.</h5>
+        <p class="small">Try resetting your filter or search keywords.</p>
+        <a href="{% url 'clubs:list' %}" class="btn btn-outline-primary rounded-pill btn-sm">Reset Filters</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+  <div class="mt-4 d-flex justify-content-center">
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+{% endif %}
+{% endblock %}

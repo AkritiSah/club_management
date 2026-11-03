@@ -1,0 +1,137 @@
+{% load static %}
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<aside class="app-sidebar" id="appSidebar">
+  <a href="{% url 'landing' %}" class="sidebar-brand">
+    <div class="sidebar-brand-icon">
+      <i class="bi bi-mortarboard-fill"></i>
+    </div>
+    <div class="sidebar-brand-text">
+      CampusClubs
+      <small>College Management</small>
+    </div>
+  </a>
+
+  <div class="sidebar-menu">
+    <div class="menu-header">Overview</div>
+    <a href="{% url 'dashboard:index' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'dashboard' and request.resolver_match.url_name != 'landing' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i>
+      <span>Dashboard</span>
+    </a>
+
+    <div class="menu-header">Clubs & Activities</div>
+    <a href="{% url 'clubs:list' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'clubs' and request.resolver_match.url_name == 'list' %}active{% endif %}">
+      <i class="bi bi-collection-fill"></i>
+      <span>Explore Clubs</span>
+    </a>
+    <a href="{% url 'events:list' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'events' and request.resolver_match.url_name == 'list' %}active{% endif %}">
+      <i class="bi bi-calendar2-event-fill"></i>
+      <span>College Events</span>
+    </a>
+    <a href="{% url 'announcements:list' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'announcements' %}active{% endif %}">
+      <i class="bi bi-megaphone-fill"></i>
+      <span>Announcements</span>
+    </a>
+
+    <!-- Role Based: Administrator Menu -->
+    {% if is_site_admin %}
+      <div class="menu-header">Admin Control Panel</div>
+      <a href="{% url 'clubs:create' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'clubs' and request.resolver_match.url_name == 'create' %}active{% endif %}">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>Add New Club</span>
+      </a>
+      <a href="{% url 'clubs:requests' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'requests' %}active{% endif %}">
+        <i class="bi bi-inbox-fill"></i>
+        <span>Club Proposals</span>
+      </a>
+      <a href="{% url 'accounts:coordinators' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'coordinators' %}active{% endif %}">
+        <i class="bi bi-person-badge-fill"></i>
+        <span>Coordinators</span>
+      </a>
+      <a href="{% url 'accounts:students' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'students' %}active{% endif %}">
+        <i class="bi bi-people-fill"></i>
+        <span>Student Directory</span>
+      </a>
+      <a href="{% url 'memberships:all_memberships' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'all_memberships' %}active{% endif %}">
+        <i class="bi bi-card-checklist"></i>
+        <span>All Memberships</span>
+        {% if pending_requests_badge_count > 0 %}
+          <span class="badge bg-warning text-dark ms-auto">{{ pending_requests_badge_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'admin:index' %}" target="_blank" class="nav-link-custom">
+        <i class="bi bi-gear-fill"></i>
+        <span>Django Admin</span>
+      </a>
+    {% endif %}
+
+    <!-- Role Based: Club Coordinator Menu -->
+    {% if is_club_coord %}
+      <div class="menu-header">Coordinator Tools</div>
+      <a href="{% url 'clubs:my_clubs' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'my_clubs' %}active{% endif %}">
+        <i class="bi bi-shield-shaded"></i>
+        <span>My Managed Clubs</span>
+      </a>
+      <a href="{% url 'events:create' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'events' and request.resolver_match.url_name == 'create' %}active{% endif %}">
+        <i class="bi bi-calendar-plus-fill"></i>
+        <span>Create Club Event</span>
+      </a>
+      <a href="{% url 'announcements:create' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'announcements' and request.resolver_match.url_name == 'create' %}active{% endif %}">
+        <i class="bi bi-broadcast"></i>
+        <span>Post Announcement</span>
+      </a>
+      <a href="{% url 'accounts:students' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'students' %}active{% endif %}">
+        <i class="bi bi-people-fill"></i>
+        <span>Search Students</span>
+      </a>
+    {% endif %}
+
+    <!-- Role Based: Student Menu -->
+    {% if is_student_user %}
+      <div class="menu-header">Student Space</div>
+      <a href="{% url 'clubs:my_clubs' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'my_clubs' %}active{% endif %}">
+        <i class="bi bi-check2-circle"></i>
+        <span>My Joined Clubs</span>
+      </a>
+      <a href="{% url 'memberships:my_memberships' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'my_memberships' %}active{% endif %}">
+        <i class="bi bi-clock-history"></i>
+        <span>Membership Status</span>
+      </a>
+      <a href="{% url 'events:my_registrations' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'my_registrations' %}active{% endif %}">
+        <i class="bi bi-ticket-perforated-fill"></i>
+        <span>My Event Tickets</span>
+      </a>
+      <a href="{% url 'clubs:create' %}" class="nav-link-custom {% if request.resolver_match.app_name == 'clubs' and request.resolver_match.url_name == 'create' %}active{% endif %}">
+        <i class="bi bi-lightbulb-fill"></i>
+        <span>Propose a Club</span>
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="sidebar-user">
+    {% if request.user.avatar %}
+      <img src="{{ request.user.avatar.url }}" alt="{{ request.user.username }}" class="sidebar-user-avatar">
+    {% else %}
+      <div class="sidebar-user-avatar bg-primary d-flex align-items-center justify-content-center text-white fw-bold">
+        {{ request.user.username|slice:":1"|upper }}
+      </div>
+    {% endif %}
+    <div class="sidebar-user-info">
+      <div class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+      <div class="sidebar-user-role">
+        <span class="badge {{ request.user.get_role_badge_class }}">{{ request.user.get_role_display }}</span>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-link text-white-50 p-0" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-three-dots-vertical"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
+        <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+        <li><a class="dropdown-item" href="{% url 'accounts:change_password' %}"><i class="bi bi-key me-2"></i>Change Password</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</aside>

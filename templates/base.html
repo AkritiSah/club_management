@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}College Club Management System{% endblock %}</title>
+
+  <!-- Google Font: Inter / Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  <!-- Bootstrap Icons 1.11.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  {% if user.is_authenticated and not clean_layout %}
+    <!-- Authenticated App Layout with Sidebar & Topbar -->
+    <div class="app-container">
+      {% include 'includes/sidebar.html' %}
+
+      <div class="app-main">
+        {% include 'includes/navbar.html' %}
+
+        <main class="page-body">
+          {% include 'includes/messages.html' %}
+          <div class="app-content-wrapper">
+  {% else %}
+    <!-- Public / Standalone Layout -->
+    <div class="public-wrapper d-flex flex-column min-vh-100">
+      {% block public_nav %}
+        <nav class="navbar navbar-expand-lg landing-nav">
+          <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark" href="{% url 'landing' %}">
+              <span class="badge bg-primary p-2 rounded-3"><i class="bi bi-mortarboard-fill fs-5 text-white"></i></span>
+              <span class="fs-5">CampusClubs</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="publicNav">
+              <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'landing' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'clubs:list' %}">Clubs</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'events:list' %}">Events</a></li>
+                <li class="nav-item"><a class="nav-link fw-medium" href="{% url 'announcements:list' %}">Announcements</a></li>
+              </ul>
+              <div class="d-flex align-items-center gap-2">
+                {% if user.is_authenticated %}
+                  <a href="{% url 'dashboard:index' %}" class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-speedometer2 me-1"></i>Go to Dashboard
+                  </a>
+                {% else %}
+                  <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary rounded-pill px-4">Login</a>
+                  <a href="{% url 'accounts:register' %}" class="btn btn-primary rounded-pill px-4">Join as Student</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </nav>
+      {% endblock %}
+
+      <div class="flex-grow-1">
+        <div class="container mt-3">
+          {% include 'includes/messages.html' %}
+        </div>
+        <div class="{% block public_container_class %}container py-4{% endblock %}">
+  {% endif %}
+
+          {% block content %}{% endblock %}
+
+  {% if user.is_authenticated and not clean_layout %}
+          </div>
+        </main>
+
+        {% include 'includes/footer.html' %}
+      </div>
+    </div>
+  {% else %}
+        </div>
+      </div>
+
+      {% include 'includes/footer.html' %}
+    </div>
+  {% endif %}
+
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <!-- Custom Main JS -->
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

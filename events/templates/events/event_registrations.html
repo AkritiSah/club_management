@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Attendee Registrations - {{ event.title }}{% endblock %}
+{% block page_title %}Event Attendee Roster{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'events:detail' slug=event.slug %}" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-arrow-left"></i></a>
+      <h4 class="fw-bold text-dark mb-0">{{ event.title }} - Registrations</h4>
+    </div>
+    <p class="text-muted small mt-1 mb-0">
+      Club: <strong>{{ event.club.name }}</strong> &nbsp;|&nbsp;
+      Confirmed: <strong>{{ total_registrations }} / {{ event.max_participants }}</strong> &nbsp;|&nbsp;
+      Attended: <strong>{{ attended_count }}</strong>
+    </p>
+  </div>
+  <a href="{% url 'events:detail' slug=event.slug %}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+    <i class="bi bi-eye me-1"></i>View Event Details
+  </a>
+</div>
+
+<div class="card custom-card">
+  <div class="custom-card-header">
+    <div class="custom-card-title">
+      <i class="bi bi-people-fill text-primary"></i>Registered Students Roster ({{ registrations.count }})
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll No & Dept</th>
+          <th>Registered At</th>
+          <th>Status</th>
+          <th>Notes / Certificate</th>
+          <th class="text-end">Update Attendance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reg in registrations %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold small" style="width: 36px; height: 36px;">
+                  {{ reg.student.first_name|default:reg.student.username|slice:":1"|upper }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ reg.student.get_full_name|default:reg.student.username }}</div>
+                  <small class="text-muted">{{ reg.student.email }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ reg.student.student_profile.roll_number|default:"N/A" }}</span>
+              <small class="text-muted d-block">{{ reg.student.student_profile.get_department_display }}</small>
+            </td>
+            <td>
+              <span class="small text-muted">{{ reg.registered_at|date:"d M Y, h:i A" }}</span>
+            </td>
+            <td>
+              {% if reg.status == 'ATTENDED' %}
+                <span class="badge bg-success">Attended</span>
+              {% elif reg.status == 'REGISTERED' %}
+                <span class="badge bg-primary">Registered</span>
+              {% else %}
+                <span class="badge bg-secondary">Cancelled</span>
+              {% endif %}
+            </td>
+            <td>
+              <small class="text-muted">{{ reg.attendance_notes|default:"-" }}</small>
+            </td>
+            <td class="text-end">
+              <form method="post" class="d-inline-flex gap-1 justify-content-end align-items-center">
+                {% csrf_token %}
+                <input type="hidden" name="registration_id" value="{{ reg.id }}">
+                <input type="text" name="notes" placeholder="Note/Award" class="form-control form-control-sm" style="width: 120px;" value="{{ reg.attendance_notes }}">
+                <select name="status" class="form-select form-select-sm" style="width: 120px;">
+                  <option value="REGISTERED" {% if reg.status == 'REGISTERED' %}selected{% endif %}>Registered</option>
+                  <option value="ATTENDED" {% if reg.status == 'ATTENDED' %}selected{% endif %}>Attended</option>
+                  <option value="CANCELLED" {% if reg.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-2" title="Save Status">
+                  Save
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
+              No registrations received for this event yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

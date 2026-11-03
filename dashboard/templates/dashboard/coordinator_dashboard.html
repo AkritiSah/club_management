@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Coordinator Dashboard - CampusClubs{% endblock %}
+{% block page_title %}Club Coordinator Workspace{% endblock %}
+
+{% block content %}
+<!-- Welcome & Coordinated Club Summary Banner -->
+<div class="card custom-card border-0 shadow-sm p-4 mb-4 text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);">
+  <div class="row align-items-center position-relative" style="z-index: 2;">
+    <div class="col-md-8">
+      <span class="badge bg-primary mb-2 px-3 py-1 rounded-pill">Club Coordinator</span>
+      <h3 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h3>
+      <p class="text-light opacity-75 mb-0">
+        You are leading: 
+        {% for club in coordinated_clubs %}
+          <strong>{{ club.name }}</strong>{% if not forloop.last %}, {% endif %}
+        {% empty %}
+          <span class="fst-italic">No club currently assigned.</span>
+        {% endfor %}
+      </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <a href="{% url 'events:create' %}" class="btn btn-primary rounded-pill px-3 shadow-sm me-2">
+        <i class="bi bi-calendar-plus me-1"></i>New Event
+      </a>
+      <a href="{% url 'announcements:create' %}" class="btn btn-outline-light rounded-pill px-3">
+        <i class="bi bi-megaphone me-1"></i>Post Notice
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Coordinator Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Enrolled Members</p>
+          <div class="stat-number">{{ total_members }}</div>
+        </div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Active student members</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Pending Requests</p>
+          <div class="stat-number {% if pending_requests_count > 0 %}text-warning{% endif %}">{{ pending_requests_count }}</div>
+        </div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-clock-history"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Awaiting your approval</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Upcoming Events</p>
+          <div class="stat-number">{{ upcoming_events_count }}</div>
+        </div>
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-calendar2-event-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Scheduled club sessions</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="stat-label">Event Registrations</p>
+          <div class="stat-number">{{ total_registrations }}</div>
+        </div>
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+          <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">Confirmed participants</small>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Pending Membership Requests Table -->
+  <div class="col-lg-7">
+    <div class="card custom-card mb-4">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-person-check-fill text-warning"></i>Pending Membership Requests ({{ pending_requests_count }})
+        </div>
+        {% if first_club %}
+          <a href="{% url 'memberships:club_members' club_slug=first_club.slug %}" class="btn btn-sm btn-outline-primary rounded-pill">
+            View All Members
+          </a>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table custom-table mb-0">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Dept & Roll</th>
+              <th>Applied Date</th>
+              <th class="text-end">Decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mem in pending_requests %}
+              <tr>
+                <td>
+                  <div class="fw-bold text-dark">{{ mem.student.get_full_name|default:mem.student.username }}</div>
+                  <small class="text-muted">{{ mem.student.email }}</small>
+                  {% if mem.remarks %}
+                    <div class="small text-muted fst-italic mt-1" style="max-width: 200px;">"{{ mem.remarks|truncatechars:50 }}"</div>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ mem.student.student_profile.roll_number|default:"N/A" }}</span>
+                  <small class="text-muted d-block">{{ mem.student.student_profile.get_department_display }}</small>
+                </td>
+                <td><small class="text-muted">{{ mem.request_date|date:"d M, h:i A" }}</small></td>
+                <td class="text-end">
+                  <form method="post" action="{% url 'memberships:approve' pk=mem.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2">Approve</button>
+                  </form>
+                  <form method="post" action="{% url 'memberships:reject' pk=mem.id %}" class="d-inline ms-1">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2">Reject</button>
+                  </form>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                  <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                  No pending membership applications. All student requests are processed!
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Upcoming Events Table -->
+    <div class="card custom-card">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-calendar-check text-primary"></i>Your Upcoming Club Events
+        </div>
+        <a href="{% url 'events:create' %}" class="btn btn-sm btn-outline-primary rounded-pill">Add Event</a>
+      </div>
+      <div class="p-3">
+        {% for ev in upcoming_events %}
+          <div class="d-flex justify-content-between align-items-center p-3 rounded-3 border mb-2 bg-light">
+            <div>
+              <span class="badge {{ ev.get_status_badge }} small mb-1">{{ ev.get_status_display }}</span>
+              <h6 class="fw-bold text-dark mb-1">{{ ev.title }}</h6>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>{{ ev.start_date_time|date:"d M Y, h:i A" }} · {{ ev.venue }}
+              </small>
+            </div>
+            <div class="text-end">
+              <span class="badge bg-white text-dark border mb-1 d-block">{{ ev.registered_count }} / {{ ev.max_participants }} Registered</span>
+              <a href="{% url 'events:registrations' slug=ev.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                Roster
+              </a>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">No upcoming events planned for your club.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Coordinated Clubs & Announcements -->
+  <div class="col-lg-5">
+    <!-- Coordinated Club Details -->
+    {% for club in coordinated_clubs %}
+      <div class="card custom-card mb-4 p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <img src="{{ club.get_logo_url }}" alt="{{ club.name }}" class="rounded-circle border" style="width: 52px; height: 52px; object-fit: cover;">
+          <div class="flex-grow-1">
+            <span class="badge bg-light text-dark border small">{{ club.get_category_display }}</span>
+            <h5 class="fw-bold text-dark mb-0 mt-1">{{ club.name }}</h5>
+          </div>
+          <a href="{% url 'clubs:update' slug=club.slug %}" class="btn btn-sm btn-outline-secondary rounded-circle" title="Edit Club Info">
+            <i class="bi bi-pencil"></i>
+          </a>
+        </div>
+
+        <div class="bg-light p-3 rounded-3 border mb-3">
+          <div class="d-flex justify-content-between text-muted small mb-1">
+            <span>Enrolled Members</span>
+            <strong class="text-dark">{{ club.member_count }} / {{ club.max_capacity }}</strong>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" style="width: {{ club.capacity_percentage }}%;"></div>
+          </div>
+          <div class="d-flex justify-content-between text-muted small mt-1">
+            <span>{{ club.available_slots }} slots available</span>
+            <span>{{ club.capacity_percentage }}% full</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{% url 'clubs:detail' slug=club.slug %}" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1">
+            <i class="bi bi-eye me-1"></i>View Page
+          </a>
+          <a href="{% url 'memberships:club_members' club_slug=club.slug %}" class="btn btn-primary btn-sm rounded-pill flex-grow-1">
+            <i class="bi bi-people me-1"></i>Roster
+          </a>
+        </div>
+      </div>
+    {% endfor %}
+
+    <!-- Club Announcements -->
+    <div class="card custom-card">
+      <div class="custom-card-header">
+        <div class="custom-card-title">
+          <i class="bi bi-megaphone text-primary"></i>Recent Notices Posted
+        </div>
+        <a href="{% url 'announcements:create' %}" class="btn btn-sm btn-outline-primary rounded-pill">New Notice</a>
+      </div>
+      <div class="p-3">
+        {% for ann in recent_announcements %}
+          <div class="announcement-item priority-{{ ann.priority }} mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h6 class="fw-bold text-dark mb-0">{{ ann.title }}</h6>
+              <span class="badge {{ ann.get_priority_badge }} small">{{ ann.get_priority_display }}</span>
+            </div>
+            <p class="text-muted small mb-1">{{ ann.content|truncatechars:100 }}</p>
+            <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ ann.created_at|date:"d M Y" }}</small>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">No announcements posted yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

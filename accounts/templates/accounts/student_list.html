@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}Registered Students - College Club Management{% endblock %}
+{% block page_title %}Student Directory{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">Student Directory</h4>
+    <p class="text-muted small mb-0">Total {{ total_students }} registered students on campus.</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card custom-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control border-start-0" placeholder="Search by name, roll no, or username..." value="{{ query }}">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select name="dept" class="form-select">
+        <option value="">-- All Departments --</option>
+        {% for code, name in departments %}
+          <option value="{{ code }}" {% if department == code %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary rounded-pill">Filter</button>
+    </div>
+  </form>
+</div>
+
+<div class="card custom-card">
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll No</th>
+          <th>Department</th>
+          <th>Year</th>
+          <th>Joined Clubs</th>
+          <th>Contact</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in page_obj %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                {% if student.avatar %}
+                  <img src="{{ student.avatar.url }}" alt="{{ student.username }}" class="rounded-circle" style="width: 36px; height: 36px; object-fit: cover;">
+                {% else %}
+                  <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+                    {{ student.first_name|default:student.username|slice:":1"|upper }}
+                  </div>
+                {% endif %}
+                <div>
+                  <div class="fw-bold text-dark">{{ student.get_full_name|default:student.username }}</div>
+                  <small class="text-muted">@{{ student.username }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border fw-medium">{{ student.student_profile.roll_number|default:"N/A" }}</span>
+            </td>
+            <td>{{ student.student_profile.get_department_display|default:"General" }}</td>
+            <td>{{ student.student_profile.get_year_of_study_display|default:"1st Year" }}</td>
+            <td>
+              {% for m in student.memberships.all %}
+                {% if m.status == 'APPROVED' %}
+                  <span class="badge bg-primary-subtle text-primary border small me-1 mb-1">{{ m.club.name }}</span>
+                {% endif %}
+              {% empty %}
+                <span class="text-muted small">0 clubs</span>
+              {% endfor %}
+            </td>
+            <td>
+              <div class="small text-muted"><i class="bi bi-envelope me-1"></i>{{ student.email|default:"N/A" }}</div>
+              <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ student.phone_number|default:"N/A" }}</div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">No students found matching your criteria.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-center">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&dept={{ department }}">Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&dept={{ department }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

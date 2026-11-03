@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Membership Requests & Status - CampusClubs{% endblock %}
+{% block page_title %}My Club Membership Applications{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">My Membership Requests</h4>
+    <p class="text-muted small mb-0">Track live approval status for clubs you have requested to join.</p>
+  </div>
+  <a href="{% url 'clubs:list' %}" class="btn btn-outline-primary rounded-pill px-4">
+    <i class="bi bi-compass me-1"></i>Explore More Clubs
+  </a>
+</div>
+
+<div class="card custom-card">
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Club</th>
+          <th>Category</th>
+          <th>Requested Date</th>
+          <th>Coordinator Notes / Decision</th>
+          <th>Status</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mem in memberships %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ mem.club.get_logo_url }}" alt="{{ mem.club.name }}" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;">
+                <div>
+                  <a href="{% url 'clubs:detail' slug=mem.club.slug %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                    {{ mem.club.name }}
+                  </a>
+                  <div class="small text-muted">Coord: {{ mem.club.coordinator.get_full_name|default:mem.club.coordinator.username }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ mem.club.get_category_display }}</span></td>
+            <td>{{ mem.request_date|date:"d M Y, h:i A" }}</td>
+            <td>
+              <small class="text-muted">{{ mem.remarks|default:"No coordinator remarks yet." }}</small>
+            </td>
+            <td>
+              <span class="badge {{ mem.get_status_badge }} px-3 py-1 rounded-pill">{{ mem.get_status_display }}</span>
+            </td>
+            <td class="text-end">
+              {% if mem.status == 'PENDING' %}
+                <form method="post" action="{% url 'memberships:cancel' pk=mem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Cancel this membership application?');">
+                    <i class="bi bi-x-circle me-1"></i>Cancel Request
+                  </button>
+                </form>
+              {% elif mem.status == 'APPROVED' %}
+                <a href="{% url 'clubs:detail' slug=mem.club.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  Visit Club
+                </a>
+              {% else %}
+                <form method="post" action="{% url 'memberships:cancel' pk=mem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-light border rounded-pill px-2" title="Dismiss Record">
+                    Dismiss
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-folder2-open fs-1 d-block mb-2 text-secondary"></i>
+              You haven't requested membership to any clubs yet.
+              <div class="mt-2">
+                <a href="{% url 'clubs:list' %}" class="btn btn-primary rounded-pill px-4 btn-sm">Find Clubs to Join</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

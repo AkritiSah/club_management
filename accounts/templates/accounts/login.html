@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In - College Club Management{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-5">
+      <div class="card border-0 shadow-lg rounded-4 p-4 p-sm-5 bg-white">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex p-3 bg-primary bg-opacity-10 text-primary rounded-circle mb-3">
+            <i class="bi bi-shield-lock-fill fs-2"></i>
+          </div>
+          <h3 class="fw-bold text-dark">Welcome Back</h3>
+          <p class="text-muted small">Sign in to your college club account to continue</p>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger small py-2 mb-3">
+              {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small text-muted">Username</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+              {{ form.username }}
+            </div>
+            {% if form.username.errors %}
+              <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small text-muted">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
+              {{ form.password }}
+            </div>
+            {% if form.password.errors %}
+              <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="small text-muted mb-0">Don't have an account? <a href="{% url 'accounts:register' %}" class="fw-bold text-primary text-decoration-none">Register as Student</a></p>
+        </div>
+
+        <!-- Demonstration Demo Credentials Box -->
+        <div class="mt-4 p-3 bg-light rounded-3 border small">
+          <div class="fw-bold text-dark mb-2 d-flex align-items-center gap-1">
+            <i class="bi bi-info-circle text-primary"></i> Demo Login Credentials:
+          </div>
+          <ul class="list-unstyled mb-0 text-muted" style="font-size: 0.8rem;">
+            <li><strong>Admin:</strong> <code>admin</code> / <code>admin123</code></li>
+            <li><strong>Hackathon Coordinator:</strong> <code>coord_hackathon</code> / <code>coord123</code></li>
+            <li><strong>Science Coordinator:</strong> <code>coord_science</code> / <code>coord123</code></li>
+            <li><strong>Student Rohit:</strong> <code>student_rohit</code> / <code>student123</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

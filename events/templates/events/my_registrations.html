@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}My Event Registrations - CampusClubs{% endblock %}
+{% block page_title %}My Event Registrations & Tickets{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">My Event Tickets & History</h4>
+    <p class="text-muted small mb-0">Record of all college workshops, competitions, and camps you registered for.</p>
+  </div>
+  <a href="{% url 'events:list' %}" class="btn btn-outline-primary rounded-pill px-4">
+    <i class="bi bi-calendar-event me-1"></i>Find Upcoming Events
+  </a>
+</div>
+
+<div class="card custom-card">
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Club</th>
+          <th>Schedule</th>
+          <th>Venue</th>
+          <th>Registered On</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reg in registrations %}
+          <tr>
+            <td>
+              <a href="{% url 'events:detail' slug=reg.event.slug %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                {{ reg.event.title }}
+              </a>
+              {% if reg.attendance_notes %}
+                <small class="d-block text-success"><i class="bi bi-award me-1"></i>{{ reg.attendance_notes }}</small>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'clubs:detail' slug=reg.event.club.slug %}" class="badge bg-light text-dark border text-decoration-none">
+                {{ reg.event.club.name }}
+              </a>
+            </td>
+            <td>
+              <span class="small text-muted">{{ reg.event.start_date_time|date:"d M Y, h:i A" }}</span>
+            </td>
+            <td><small class="text-muted">{{ reg.event.venue }}</small></td>
+            <td><span class="small text-muted">{{ reg.registered_at|date:"d M Y" }}</span></td>
+            <td>
+              {% if reg.status == 'ATTENDED' %}
+                <span class="badge bg-success">Attended</span>
+              {% elif reg.status == 'REGISTERED' %}
+                <span class="badge bg-primary">Confirmed</span>
+              {% else %}
+                <span class="badge bg-secondary">Cancelled</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'events:detail' slug=reg.event.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                Ticket Details
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-ticket-perforated fs-1 d-block mb-2 text-secondary"></i>
+              You haven't registered for any events yet.
+              <div class="mt-2">
+                <a href="{% url 'events:list' %}" class="btn btn-primary rounded-pill px-4 btn-sm">Explore Upcoming Events</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

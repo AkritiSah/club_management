@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - College Club Management{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card custom-card p-4">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
+          <i class="bi bi-calendar-plus-fill fs-3"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold text-dark mb-0">{{ title }}</h4>
+          <p class="text-muted small mb-0">Schedule a campus hackathon, workshop, seminar, or cultural festival</p>
+        </div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger small py-2 mb-3">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Event Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Organizing Club *</label>
+            {{ form.club }}
+            {% if form.club.errors %}<div class="text-danger small mt-1">{{ form.club.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Event Status</label>
+            {{ form.status }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Start Date & Time *</label>
+            {{ form.start_date_time }}
+            {% if form.start_date_time.errors %}<div class="text-danger small mt-1">{{ form.start_date_time.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">End Date & Time *</label>
+            {{ form.end_date_time }}
+            {% if form.end_date_time.errors %}<div class="text-danger small mt-1">{{ form.end_date_time.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Campus Venue / Location *</label>
+            {{ form.venue }}
+            {% if form.venue.errors %}<div class="text-danger small mt-1">{{ form.venue.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Maximum Participant Capacity *</label>
+            {{ form.max_participants }}
+            {% if form.max_participants.errors %}<div class="text-danger small mt-1">{{ form.max_participants.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Registration Deadline *</label>
+            {{ form.registration_deadline }}
+            {% if form.registration_deadline.errors %}<div class="text-danger small mt-1">{{ form.registration_deadline.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Event Poster / Banner</label>
+            {{ form.poster }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Description & Guidelines *</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+          <a href="{% url 'events:list' %}" class="btn btn-outline-secondary rounded-pill px-3">Cancel</a>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-calendar-check me-1"></i>Save Event
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

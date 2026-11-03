@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - College Club Management{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card custom-card p-4">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
+          <i class="bi bi-collection-fill fs-3"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold text-dark mb-0">{{ title }}</h4>
+          <p class="text-muted small mb-0">Fill in the official club profile information</p>
+        </div>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger small py-2 mb-3">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Club Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Category *</label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Max Member Capacity *</label>
+            {{ form.max_capacity }}
+            {% if form.max_capacity.errors %}<div class="text-danger small mt-1">{{ form.max_capacity.errors.0 }}</div>{% endif %}
+          </div>
+
+          {% if not is_proposal %}
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Club Coordinator</label>
+              {{ form.coordinator }}
+              {% if form.coordinator.errors %}<div class="text-danger small mt-1">{{ form.coordinator.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Status</label>
+              {{ form.status }}
+              {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Foundation Date</label>
+              {{ form.established_date }}
+            </div>
+          {% endif %}
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Regular Meeting Venue</label>
+            {{ form.meeting_venue }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Contact Email</label>
+            {{ form.contact_email }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Club Logo / Emblem</label>
+            {{ form.logo }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Description & Mission *</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+          {% if is_edit and is_site_admin %}
+            <a href="{% url 'clubs:delete' slug=club.slug %}" class="btn btn-outline-danger rounded-pill btn-sm">
+              <i class="bi bi-trash me-1"></i>Delete Club
+            </a>
+          {% else %}
+            <div></div>
+          {% endif %}
+          <div class="d-flex gap-2">
+            <a href="{% url 'clubs:list' %}" class="btn btn-outline-secondary rounded-pill px-3">Cancel</a>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+              <i class="bi bi-check2-circle me-1"></i>Submit
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Manage Club Coordinators - College Club Management{% endblock %}
+{% block page_title %}Club Coordinators Directory{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">Club Coordinators</h4>
+    <p class="text-muted small mb-0">Designated faculty and student heads managing college clubs.</p>
+  </div>
+  <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#createCoordModal">
+    <i class="bi bi-person-plus-fill me-1"></i>Add New Coordinator
+  </button>
+</div>
+
+<div class="card custom-card">
+  <div class="custom-card-header">
+    <div class="custom-card-title">
+      <i class="bi bi-person-badge-fill text-primary"></i>Coordinators Roster ({{ coordinators.count }})
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Coordinator</th>
+          <th>Username</th>
+          <th>Contact Info</th>
+          <th>Assigned Club(s)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for coord in coordinators %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+                  {{ coord.first_name|default:coord.username|slice:":1"|upper }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ coord.get_full_name|default:coord.username }}</div>
+                  <small class="text-muted">{{ coord.email }}</small>
+                </div>
+              </div>
+            </td>
+            <td><code>{{ coord.username }}</code></td>
+            <td>
+              <div><i class="bi bi-telephone text-muted me-1"></i>{{ coord.phone_number|default:"N/A" }}</div>
+            </td>
+            <td>
+              {% for club in coord.coordinated_clubs.all %}
+                <a href="{% url 'clubs:detail' slug=club.slug %}" class="badge bg-primary-subtle text-primary text-decoration-none border me-1">
+                  {{ club.name }}
+                </a>
+              {% empty %}
+                <span class="text-muted small fst-italic">None Assigned</span>
+              {% endfor %}
+            </td>
+            <td>
+              <span class="badge bg-success">Active</span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted">No coordinators found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: Create Coordinator -->
+<div class="modal fade" id="createCoordModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold"><i class="bi bi-person-plus-fill text-primary me-2"></i>Create Coordinator</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-muted">Username *</label>
+              {{ form.username }}
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold text-muted">Email Address *</label>
+              {{ form.email }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">First Name</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Last Name</label>
+              {{ form.last_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Phone Number</label>
+              {{ form.phone_number }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Password *</label>
+              {{ form.password }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary rounded-pill px-4">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

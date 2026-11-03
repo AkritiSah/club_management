@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Manage Members - {{ club.name }}{% endblock %}
+{% block page_title %}Club Membership Management{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{% url 'clubs:detail' slug=club.slug %}" class="btn btn-sm btn-light border rounded-circle"><i class="bi bi-arrow-left"></i></a>
+      <h4 class="fw-bold text-dark mb-0">{{ club.name }} - Members</h4>
+    </div>
+    <p class="text-muted small mt-1 mb-0">Total Enrolled: <strong>{{ counts.APPROVED }} / {{ club.max_capacity }}</strong> Members ({{ club.available_slots }} slots remaining)</p>
+  </div>
+  <div>
+    <a href="{% url 'clubs:detail' slug=club.slug %}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+      <i class="bi bi-eye me-1"></i>View Public Club Page
+    </a>
+  </div>
+</div>
+
+<!-- Status Tabs -->
+<ul class="nav nav-pills mb-4 gap-2">
+  <li class="nav-item">
+    <a class="nav-link rounded-pill {% if status_filter == 'PENDING' %}active{% else %}bg-white border text-dark{% endif %}" href="?status=PENDING">
+      Pending Requests <span class="badge bg-warning text-dark ms-1">{{ counts.PENDING }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link rounded-pill {% if status_filter == 'APPROVED' %}active{% else %}bg-white border text-dark{% endif %}" href="?status=APPROVED">
+      Approved Members <span class="badge bg-success ms-1">{{ counts.APPROVED }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link rounded-pill {% if status_filter == 'REJECTED' %}active{% else %}bg-white border text-dark{% endif %}" href="?status=REJECTED">
+      Rejected <span class="badge bg-danger ms-1">{{ counts.REJECTED }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link rounded-pill {% if status_filter == 'ALL' %}active{% else %}bg-white border text-dark{% endif %}" href="?status=ALL">
+      All Records <span class="badge bg-secondary ms-1">{{ counts.TOTAL }}</span>
+    </a>
+  </li>
+</ul>
+
+<div class="card custom-card">
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll No & Dept</th>
+          <th>Applied Date</th>
+          <th>Student Statement / Remarks</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mem in page_obj %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold small" style="width: 36px; height: 36px;">
+                  {{ mem.student.first_name|default:mem.student.username|slice:":1"|upper }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ mem.student.get_full_name|default:mem.student.username }}</div>
+                  <small class="text-muted">{{ mem.student.email }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div><span class="badge bg-light text-dark border">{{ mem.student.student_profile.roll_number|default:"N/A" }}</span></div>
+              <small class="text-muted">{{ mem.student.student_profile.get_department_display }} (Year {{ mem.student.student_profile.year_of_study }})</small>
+            </td>
+            <td>
+              <span class="small text-muted">{{ mem.request_date|date:"d M Y, h:i A" }}</span>
+            </td>
+            <td>
+              <div class="small text-muted" style="max-width: 250px;">
+                {{ mem.remarks|default:"No remarks provided" }}
+              </div>
+            </td>
+            <td>
+              <span class="badge {{ mem.get_status_badge }}">{{ mem.get_status_display }}</span>
+            </td>
+            <td class="text-end">
+              {% if mem.status == 'PENDING' %}
+                <form method="post" action="{% url 'memberships:approve' pk=mem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success rounded-pill px-3" {% if club.is_full %}disabled title="Club capacity full"{% endif %}>
+                    <i class="bi bi-check-lg me-1"></i>Approve
+                  </button>
+                </form>
+                <form method="post" action="{% url 'memberships:reject' pk=mem.id %}" class="d-inline ms-1">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Reject this student application?');">
+                    <i class="bi bi-x-lg me-1"></i>Reject
+                  </button>
+                </form>
+              {% elif mem.status == 'APPROVED' %}
+                <form method="post" action="{% url 'memberships:reject' pk=mem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Revoke Membership" onclick="return confirm('Revoke membership for this student?');">
+                    Revoke
+                  </button>
+                </form>
+              {% else %}
+                <form method="post" action="{% url 'memberships:approve' pk=mem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-2" {% if club.is_full %}disabled{% endif %}>
+                    Re-Approve
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+              No membership applications under this category.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-center">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - College Club Management{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card custom-card p-4">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-circle">
+          <i class="bi bi-broadcast fs-3"></i>
+        </div>
+        <div>
+          <h4 class="fw-bold text-dark mb-0">{{ title }}</h4>
+          <p class="text-muted small mb-0">Publish an official bulletin or club recruitment notice</p>
+        </div>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger small py-2 mb-3">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold text-muted">Announcement Title *</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Target Club / Audience *</label>
+            {{ form.club }}
+            {% if form.club.errors %}<div class="text-danger small mt-1">{{ form.club.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold text-muted">Priority Level *</label>
+            {{ form.priority }}
+            {% if form.priority.errors %}<div class="text-danger small mt-1">{{ form.priority.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold text-muted">Announcement Content & Details *</label>
+          {{ form.content }}
+          {% if form.content.errors %}<div class="text-danger small mt-1">{{ form.content.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{% url 'announcements:list' %}" class="btn btn-outline-secondary rounded-pill px-3">Cancel</a>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-send-check me-1"></i>Publish Notice
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

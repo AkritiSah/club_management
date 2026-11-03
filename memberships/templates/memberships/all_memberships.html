@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}All Campus Memberships - Administrator{% endblock %}
+{% block page_title %}University Club Memberships Master List{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">Campus Memberships Master Roster</h4>
+    <p class="text-muted small mb-0">Total {{ total_memberships }} student club memberships across the college.</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card custom-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control border-start-0" placeholder="Search by student name or roll number..." value="{{ query }}">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <select name="club" class="form-select">
+        <option value="">-- All Clubs --</option>
+        {% for c in clubs %}
+          <option value="{{ c.id }}" {% if club_filter == c.id|stringformat:"i" %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select">
+        <option value="">-- All Statuses --</option>
+        <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary rounded-pill">Filter</button>
+    </div>
+  </form>
+</div>
+
+<div class="card custom-card">
+  <div class="table-responsive">
+    <table class="table custom-table mb-0">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll No & Dept</th>
+          <th>Club</th>
+          <th>Request Date</th>
+          <th>Decision Date</th>
+          <th>Status</th>
+          <th class="text-end">Manage</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mem in page_obj %}
+          <tr>
+            <td>
+              <div class="fw-bold text-dark">{{ mem.student.get_full_name|default:mem.student.username }}</div>
+              <small class="text-muted">@{{ mem.student.username }}</small>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ mem.student.student_profile.roll_number|default:"N/A" }}</span>
+              <small class="text-muted d-block">{{ mem.student.student_profile.get_department_display }}</small>
+            </td>
+            <td>
+              <a href="{% url 'clubs:detail' slug=mem.club.slug %}" class="fw-bold text-primary text-decoration-none">
+                {{ mem.club.name }}
+              </a>
+            </td>
+            <td>{{ mem.request_date|date:"d M Y" }}</td>
+            <td>{{ mem.decision_date|date:"d M Y"|default:"-" }}</td>
+            <td>
+              <span class="badge {{ mem.get_status_badge }}">{{ mem.get_status_display }}</span>
+            </td>
+            <td class="text-end">
+              {% if mem.status == 'PENDING' %}
+                <form method="post" action="{% url 'memberships:approve' pk=mem.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success rounded-pill px-2">Approve</button>
+                </form>
+                <form method="post" action="{% url 'memberships:reject' pk=mem.id %}" class="d-inline ms-1">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2">Reject</button>
+                </form>
+              {% else %}
+                <a href="{% url 'memberships:club_members' club_slug=mem.club.slug %}" class="btn btn-sm btn-light border rounded-pill px-2">
+                  Inspect
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">No memberships found matching the filter criteria.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div class="p-3 border-top d-flex justify-content-center">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&club={{ club_filter }}&status={{ status_filter }}">Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&club={{ club_filter }}&status={{ status_filter }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

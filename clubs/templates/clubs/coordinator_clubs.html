@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}My Coordinated Clubs - CampusClubs{% endblock %}
+{% block page_title %}My Assigned Clubs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">Clubs You Coordinate</h4>
+    <p class="text-muted small mb-0">Overview of clubs assigned to your leadership.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% for club in clubs %}
+    <div class="col-lg-6">
+      <div class="card custom-card p-4 h-100">
+        <div class="d-flex align-items-start gap-3 mb-3">
+          <img src="{{ club.get_logo_url }}" alt="{{ club.name }}" class="rounded-circle border" style="width: 56px; height: 56px; object-fit: cover;">
+          <div class="flex-grow-1">
+            <span class="badge bg-light text-dark border small">{{ club.get_category_display }}</span>
+            <h5 class="fw-bold text-dark mt-1 mb-0">{{ club.name }}</h5>
+            <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ club.meeting_venue|default:"Main Campus" }}</small>
+          </div>
+          <span class="badge {{ club.get_status_badge }}">{{ club.get_status_display }}</span>
+        </div>
+
+        <p class="text-muted small mb-3">{{ club.description|truncatechars:120 }}</p>
+
+        <div class="bg-light p-3 rounded-3 border mb-3">
+          <div class="d-flex justify-content-between text-muted small mb-1">
+            <span>Members Capacity</span>
+            <strong class="text-dark">{{ club.approved_members }} / {{ club.max_capacity }}</strong>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-primary" style="width: {{ club.capacity_percentage }}%;"></div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-auto pt-2 border-top">
+          <a href="{% url 'memberships:club_members' club_slug=club.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+            <i class="bi bi-people me-1"></i>Members
+            {% if club.pending_members > 0 %}
+              <span class="badge bg-warning text-dark ms-1">{{ club.pending_members }}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'events:create' %}?club={{ club.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+            <i class="bi bi-calendar-plus me-1"></i>New Event
+          </a>
+          <a href="{% url 'announcements:create' %}?club={{ club.id }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-megaphone me-1"></i>Notice
+          </a>
+          <a href="{% url 'clubs:update' slug=club.slug %}" class="btn btn-sm btn-outline-secondary rounded-pill px-2">
+            <i class="bi bi-pencil"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+      <i class="bi bi-shield-x fs-1 d-block mb-2"></i>
+      No clubs currently assigned to your account. Contact the college administrator.
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

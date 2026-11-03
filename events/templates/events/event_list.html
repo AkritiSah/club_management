@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}College Events & Workshops - CampusClubs{% endblock %}
+{% block page_title %}College Events Calendar{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h4 class="fw-bold text-dark mb-1">Campus Events & Activities</h4>
+    <p class="text-muted small mb-0">Hackathons, academic competitions, cultural fests, workshops, and volunteer drives.</p>
+  </div>
+  {% if is_site_admin or is_club_coord %}
+    <a href="{% url 'events:create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+      <i class="bi bi-calendar-plus me-1"></i>Create Event
+    </a>
+  {% endif %}
+</div>
+
+<!-- Search & Status Filters -->
+<div class="card custom-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control border-start-0" placeholder="Search events by title, venue, or description..." value="{{ query }}">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <select name="club" class="form-select">
+        <option value="">-- All Organizing Clubs --</option>
+        {% for c in clubs %}
+          <option value="{{ c.id }}" {% if club_filter == c.id|stringformat:"i" %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="status" class="form-select">
+        <option value="">-- All Statuses --</option>
+        <option value="UPCOMING" {% if status_filter == 'UPCOMING' %}selected{% endif %}>Upcoming</option>
+        <option value="ONGOING" {% if status_filter == 'ONGOING' %}selected{% endif %}>Ongoing</option>
+        <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary rounded-pill">Apply Filter</button>
+    </div>
+  </form>
+</div>
+
+<!-- Events Grid -->
+<div class="row g-4">
+  {% for event in page_obj %}
+    <div class="col-md-6 col-lg-4">
+      <div class="event-card">
+        <div class="event-card-img-wrap">
+          <img src="{{ event.get_poster_url }}" alt="{{ event.title }}" class="event-card-img">
+          <div class="event-badge-overlay">
+            <span class="badge {{ event.get_status_badge }} shadow-sm">
+              {{ event.get_status_display }}
+            </span>
+          </div>
+          <div class="event-club-overlay">
+            <span class="badge bg-dark bg-opacity-75 text-white">
+              {{ event.club.name }}
+            </span>
+          </div>
+        </div>
+        <div class="event-card-body">
+          <h5 class="event-card-title">{{ event.title }}</h5>
+          
+          <div class="event-meta-item">
+            <i class="bi bi-calendar3 text-primary"></i>
+            <span>{{ event.start_date_time|date:"D, d M Y · h:i A" }}</span>
+          </div>
+          
+          <div class="event-meta-item">
+            <i class="bi bi-geo-alt-fill text-danger"></i>
+            <span>{{ event.venue }}</span>
+          </div>
+
+          <div class="event-meta-item">
+            <i class="bi bi-alarm text-warning"></i>
+            <span class="small">Deadline: {{ event.registration_deadline|date:"d M, h:i A" }}</span>
+          </div>
+
+          <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+            <span class="small text-muted">
+              <i class="bi bi-people me-1"></i>{{ event.registered_count }}/{{ event.max_participants }} Seats
+            </span>
+
+            <div class="d-flex gap-1">
+              <a href="{% url 'events:detail' slug=event.slug %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                Details
+              </a>
+
+              {% if is_student_user %}
+                {% if event.id in user_registrations %}
+                  <span class="badge bg-success-subtle text-success border d-flex align-items-center px-2 py-1 rounded-pill">
+                    <i class="bi bi-check me-1"></i>Registered
+                  </span>
+                {% elif event.is_registration_open %}
+                  <a href="{% url 'events:register' slug=event.slug %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                    Register
+                  </a>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border d-flex align-items-center px-2 py-1 rounded-pill">
+                    Closed
+                  </span>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+      <i class="bi bi-calendar-x fs-1 d-block mb-2 text-secondary"></i>
+      <h5>No events match your search criteria.</h5>
+      <p class="small">Try resetting your filters.</p>
+      <a href="{% url 'events:list' %}" class="btn btn-outline-primary rounded-pill btn-sm">Reset Filter</a>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+  <div class="mt-4 d-flex justify-content-center">
+    <nav>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&club={{ club_filter }}&status={{ status_filter }}">Previous</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&club={{ club_filter }}&status={{ status_filter }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+{% endif %}
+{% endblock %}
